@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /** @var string File area used to store submitted recordings. */
 define('ASSIGNSUBMISSION_RECORDING_FILEAREA', 'submissions_recording');
 
