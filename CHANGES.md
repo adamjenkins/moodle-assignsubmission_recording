@@ -1,5 +1,14 @@
 # Changes
 
+## v0.1.1
+
+Security fix.
+
+- `upload.php` now verifies the real content type of every uploaded recording (not just the client-supplied filename/extension) and rejects anything that isn't audio or video, closing a stored XSS where a non-media file could be uploaded and later served inline to a grader.
+- The submission file server now forces download for any stored file that isn't audio/video, as defense in depth.
+- The submission file server now validates the requested file area.
+- The upload endpoint now enforces the course/site maximum upload size server-side.
+
 ## v0.1.0
 
 First public release.

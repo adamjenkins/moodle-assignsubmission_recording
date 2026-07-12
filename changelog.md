@@ -2,6 +2,17 @@
 
 All notable changes to the Recording submission plugin (`assignsubmission_recording`) are documented in this file.
 
+## [0.1.1] - 2026-07-12
+
+### Security
+
+- Fixed a stored XSS: `upload.php` accepted any file type and stored it with the client-supplied filename/extension, and `assignsubmission_recording_pluginfile()` served submission files inline regardless of type. A student could upload an HTML file disguised as a recording that would execute in a grader's session if opened. Uploads are now validated against their real (content-sniffed) MIME type and rejected unless audio/video; stored filenames are generated server-side; and the file server forces download for any non-media file as defense in depth.
+
+### Fixed
+
+- `assignsubmission_recording_pluginfile()` now validates the requested file area instead of accepting any value.
+- `upload.php` now enforces the course/site maximum upload size server-side; previously only the client-side recorder's timer bounded recording length.
+
 ## [0.1.0] - 2026-06-15
 
 ### Added

@@ -49,6 +49,14 @@ function assignsubmission_recording_pluginfile(
         return false;
     }
 
+    // Hard-coded rather than the ASSIGNSUBMISSION_RECORDING_FILEAREA constant from
+    // locallib.php: this lib.php can be include_once'd directly by core's pluginfile
+    // dispatcher before mod/assign/locallib.php (and thus assign_submission_plugin,
+    // our locallib.php's parent class) has been loaded.
+    if ($filearea !== 'submissions_recording') {
+        return false;
+    }
+
     require_login($course, false, $cm);
 
     $itemid = (int) array_shift($args);
@@ -88,5 +96,10 @@ function assignsubmission_recording_pluginfile(
         return false;
     }
 
-    send_stored_file($file, 0, 0, false, $options);
+    // Recordings play inline as <audio>/<video>, but only when the stored file is
+    // genuinely audio/video. Anything else (e.g. a non-media file that slipped past
+    // upload.php's content check by some other route) is forced to download instead
+    // of being rendered inline, matching core assignsubmission_file's behaviour.
+    $ismedia = (bool) preg_match('#^(audio|video)/#', $file->get_mimetype());
+    send_stored_file($file, 0, 0, !$ismedia, $options);
 }

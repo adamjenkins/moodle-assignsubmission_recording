@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'assignsubmission_recording';
-$plugin->version   = 2026061500;
+$plugin->version   = 2026071200;
 $plugin->requires  = 2024100700;
 $plugin->supported = [500, 502];
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.1.0';
+$plugin->release   = '0.1.1';

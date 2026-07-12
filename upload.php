@@ -54,8 +54,8 @@ require_login($cm->course, false, $cm);
 require_capability('mod/assign:submit', $context);
 
 // Load the plugin config to check the allowed recording mode.
-require_once($CFG->dirroot . '/mod/assign/locallib.php');
-$assign = new assign($context, $cm, get_course($cm->course));
+$course = get_course($cm->course);
+$assign = new assign($context, $cm, $course);
 $plugin = $assign->get_plugin_by_type('assignsubmission', 'recording');
 
 if ($plugin) {
@@ -77,14 +77,46 @@ if (!empty($_FILES['recording']['error'])) {
     throw new moodle_exception('uploadfailed', 'assignsubmission_recording');
 }
 
+$tmpname = $_FILES['recording']['tmp_name'];
+
+// The recorder's client-side maxduration auto-stop is advisory only; enforce the
+// course/site upload size limit server-side as well.
+$maxbytes = get_max_upload_file_size($CFG->maxbytes, $course->maxbytes);
+if ($maxbytes > 0 && $_FILES['recording']['size'] > $maxbytes) {
+    throw new moodle_exception('uploadfailed', 'assignsubmission_recording');
+}
+
+// Identify the real content type from the file's contents rather than trusting the
+// client-supplied filename/extension or Content-Type header, which are attacker
+// controlled. This is the container formats the AMD recorder actually produces
+// (webm/mp4/ogg); anything else is rejected outright.
+$allowedmimetypes = [
+    'audio/webm'      => 'webm',
+    'video/webm'      => 'webm',
+    'audio/mp4'       => 'mp4',
+    'video/mp4'       => 'mp4',
+    'audio/ogg'       => 'ogg',
+    'video/ogg'       => 'ogg',
+    'application/ogg' => 'ogg',
+];
+
+$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$detectedmimetype = $finfo ? finfo_file($finfo, $tmpname) : false;
+if ($finfo) {
+    finfo_close($finfo);
+}
+
+if (!$detectedmimetype || !isset($allowedmimetypes[$detectedmimetype])) {
+    throw new moodle_exception('recordingnotallowed', 'assignsubmission_recording');
+}
+
 $fs = get_file_storage();
 $usercontext = context_user::instance($USER->id);
 
-// Build a unique filename inside the draft area.
-$filename = clean_param($_FILES['recording']['name'], PARAM_FILE);
-if ($filename === '') {
-    $filename = ($mediatype === 'video' ? 'video' : 'audio') . '.webm';
-}
+// Server-generated filename: the extension comes from the detected mimetype above,
+// never from the client-supplied name, so a spoofed extension cannot smuggle an
+// executable file type past this check.
+$filename = ($mediatype === 'video' ? 'video' : 'audio') . '.' . $allowedmimetypes[$detectedmimetype];
 $filename = $fs->get_unused_filename($usercontext->id, 'user', 'draft', $draftitemid, '/', $filename);
 
 $filerecord = (object) [
@@ -97,7 +129,7 @@ $filerecord = (object) [
     'userid'    => $USER->id,
 ];
 
-$storedfile = $fs->create_file_from_pathname($filerecord, $_FILES['recording']['tmp_name']);
+$storedfile = $fs->create_file_from_pathname($filerecord, $tmpname);
 
 $url = moodle_url::make_draftfile_url($draftitemid, '/', $filename)->out(false);
 
