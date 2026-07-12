@@ -1,0 +1,19 @@
+{
+
+    "name": "adamjenkins/moodle-assignsubmission_recording",
+
+    "description": "Replaces the assignment submission text editor with a browser-based audio/video recorder (MediaRecorder API) - no third-party service required",
+
+    "type": "moodle-assignsubmission",
+
+    "require": {
+
+        "moodle/moodle": ">=5.0 <5.3",
+
+        "moodle/composer-installer": "^1.0"
+
+    },
+
+    "license": "GPL-3.0-or-later"
+
+}
