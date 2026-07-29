@@ -1,0 +1,23 @@
+# camp listing manifest — descriptive content for your plugin's page.
+# Edit freely and commit; camp ingests this file at each tagged release.
+# Schema: https://camp-registry.org/schema/listing.schema.json
+name: assignsubmission_recording
+summary: 'An assignment submission plugin that replaces the text editor with a browser-based audio/video recorder — students record directly in the browser, no third-party service required.'
+description: |
+  Replaces the text editor in assignment submissions with a browser-based
+  audio/video recorder. Students record audio or video directly in their
+  browser, with a configurable maximum length, optional camera switching, and
+  site-wide bitrate settings. Recordings survive course backup/restore, and the
+  privacy API is implemented so they are exported and deleted with GDPR
+  requests.
+labels:
+  # Required disclosure labels — pick all that apply (RFC §4.7):
+  #   fully-free | freemium | paid-service | external-account
+  #   donation-supported | commercial-support-available
+  - fully-free
+# screenshots:
+#   - path: .camp/screenshots/overview.png
+#     caption: Main view
+# links:
+#   docs: https://…
+#   issues: https://…
