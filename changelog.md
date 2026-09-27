@@ -2,6 +2,12 @@
 
 All notable changes to the Recording submission plugin (`assignsubmission_recording`) are documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Declare Moodle 5.3 support.
+
 ## [0.1.2] - 2026-08-04
 
 ### Added
