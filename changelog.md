@@ -2,7 +2,7 @@
 
 All notable changes to the Recording submission plugin (`assignsubmission_recording`) are documented in this file.
 
-## [Unreleased]
+## [0.1.3] - 2026-10-03
 
 ### Changed
 
