@@ -2,7 +2,7 @@
 
 All notable changes to the Recording submission plugin (`assignsubmission_recording`) are documented in this file.
 
-## [Unreleased]
+## [0.1.4] - 2026-10-04
 
 ### Fixed
 
@@ -11,6 +11,10 @@ All notable changes to the Recording submission plugin (`assignsubmission_record
 
 ### Changed
 
+- Maturity raised from `MATURITY_ALPHA` to `MATURITY_BETA`.
+- CI: the moodle.git `main` rows became blocking `MOODLE_503_STABLE` rows now that Moodle 5.3 is released.
+- `composer.json`: the `moodle/moodle` requirement is now a caret constraint, so newer 5.x releases are not excluded.
+- Pushing a `v*` tag now also publishes the release to the camp registry (`.github/workflows/camp-release.yml`).
 - `$plugin->requires` raised from Moodle 4.5 (2024100700) to Moodle 5.0 (2025041400), the lowest branch in `$plugin->supported`.
 - The upload rules and the file-serving access rules moved into `\assignsubmission_recording\local\recording_upload` and `\assignsubmission_recording\local\file_access` so they can be tested. A request that itself asks for a download (`?forcedownload=1`) is now honoured.
 

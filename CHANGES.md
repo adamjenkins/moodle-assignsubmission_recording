@@ -1,7 +1,8 @@
 # Changes
 
-## Unreleased
+## v0.1.4
 
+- Maturity raised from Alpha to Beta.
 - The maximum recording length is now also bounded on the server: an upload (or a file in
   the submission's draft area) larger than that length allows at the site's recording
   bitrates is rejected. This is a file-size limit derived from the length, not a measured
@@ -13,7 +14,8 @@
 - Requires Moodle 5.0 or later (`$plugin->requires` now matches the declared supported range).
 - Added PHPUnit tests for the upload rules, file serving access and download handling,
   saving and rendering, and the privacy provider.
-
-## v0.1.3
-
-- Declare Moodle 5.3 support.
+- Continuous integration now tests against the Moodle 5.3 stable branch (MOODLE_503_STABLE)
+  instead of Moodle's development branch.
+- `composer.json` now uses a caret constraint for `moodle/moodle`, so newer Moodle 5.x
+  releases are not excluded.
+- Tagged releases are now also published to the camp plugin registry.

@@ -2,7 +2,7 @@
 
 **Component:** `assignsubmission_recording`  
 **Requires:** Moodle 5.0+ (version 2025041400)  
-**Maturity:** Alpha
+**Maturity:** Beta
 
 Replaces the text editor in assignment submissions with a browser-based audio/video recorder. Students record directly in their browser — no third-party service or app required.
 
