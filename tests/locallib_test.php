@@ -142,6 +142,23 @@ final class locallib_test extends \advanced_testcase {
         $this->assertEquals(0, $this->count_submission_files($assign, $submission));
     }
 
+    public function test_save_holds_audio_embed_to_audio_ceiling_when_both_are_allowed(): void {
+        set_config('videobitrate', 1000000, 'assignsubmission_recording');
+        $assign = $this->create_recording_assign($this->course, 'both', 5);
+        $plugin = $assign->get_submission_plugin_by_type('recording');
+        $size = 500000;
+        // Larger than a 5-second audio recording may be, but within the video ceiling.
+        $this->assertGreaterThan($plugin->get_max_recording_bytes('audio'), $size);
+        $this->assertLessThan($plugin->get_max_recording_bytes('video'), $size);
+
+        [$saved, $plugin] = $this->try_save($assign, 'audio', $size);
+        $this->assertFalse($saved);
+        $this->assertSame(get_string('recordingtoolong', 'assignsubmission_recording'), $plugin->get_error());
+
+        [$saved] = $this->try_save($assign, 'video', $size);
+        $this->assertTrue($saved);
+    }
+
     public function test_max_recording_bytes(): void {
         set_config('videobitrate', 1000000, 'assignsubmission_recording');
         $assign = $this->create_recording_assign($this->course, 'both', 10);

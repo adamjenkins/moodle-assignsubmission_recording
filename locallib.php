@@ -238,8 +238,13 @@ class assign_submission_recording extends assign_submission_plugin {
             return false;
         }
 
+        // The size ceiling follows what is actually submitted, not the assignment-wide mode
+        // or the client-reported media type: in an 'audio or video' assignment an audio
+        // embed is held to the (much smaller) audio ceiling.
         $mode = $this->get_mode();
-        $maxbytes = $this->get_max_recording_bytes($mode === self::MODE_AUDIO ? self::MODE_AUDIO : self::MODE_VIDEO);
+        $isvideo = $mode === self::MODE_VIDEO
+            || ($mode === self::MODE_BOTH && preg_match('/<\s*video\b/i', (string) $text));
+        $maxbytes = $this->get_max_recording_bytes($isvideo ? self::MODE_VIDEO : self::MODE_AUDIO);
         if ($maxbytes > 0 && $draftitemid > 0) {
             $draftfiles = get_file_storage()->get_area_files(
                 context_user::instance($USER->id)->id,
@@ -492,9 +497,10 @@ class assign_submission_recording extends assign_submission_plugin {
      *
      * The ceiling is the nominal size of a full-length recording at the site's
      * configured bitrates, times SIZE_HEADROOM_FACTOR, plus SIZE_OVERHEAD_BYTES.
-     * It is how the server enforces the maximum recording length, since the
-     * duration itself is not reliably recorded in the container (MediaRecorder
-     * WebM files usually carry no duration).
+     * It is how the server bounds the maximum recording length: a file-size bound
+     * derived from the length, not a measured duration, since the duration itself
+     * is not reliably recorded in the container (MediaRecorder WebM files usually
+     * carry no duration). A recording encoded at a lower bitrate can still be longer.
      *
      * @param string $mediatype 'audio' or 'video'
      * @return int bytes, or 0 when the assignment has no length limit

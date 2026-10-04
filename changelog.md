@@ -6,7 +6,7 @@ All notable changes to the Recording submission plugin (`assignsubmission_record
 
 ### Fixed
 
-- The per-assignment maximum recording length was enforced only by the browser recorder's auto-stop, so a direct request to `upload.php` could store a recording of any length. The server now rejects an upload larger than the maximum length allows at the site's configured bitrates (with headroom for encoder overshoot), and `save()` re-checks the files in the draft area, which can also be filled through core's repository upload.
+- The per-assignment maximum recording length was enforced only by the browser recorder's auto-stop, so a direct request to `upload.php` could store a recording of any length. The server now rejects an upload larger than the maximum length allows at the site's configured bitrates (with headroom for encoder overshoot), and `save()` re-checks the files in the draft area, which can also be filled through core's repository upload. The limit is a file-size bound derived from the length, not a measured duration (MediaRecorder WebM files usually carry none), so a recording encoded at a lower bitrate can still run longer. `save()` picks the audio or video size limit from the submitted embed, so in an "audio or video" assignment an audio recording is not held only to the much larger video limit.
 - The audio-only / video-only setting was checked only against the client-reported media type. `save()` now rejects a `<video>` embed in an audio-only assignment and an `<audio>` embed in a video-only one, and `upload.php` rejects media types other than `audio` or `video`.
 
 ### Changed
