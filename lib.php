@@ -43,8 +43,6 @@ function assignsubmission_recording_pluginfile(
     $forcedownload,
     array $options = []
 ) {
-    global $DB, $CFG;
-
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
@@ -59,47 +57,19 @@ function assignsubmission_recording_pluginfile(
 
     require_login($course, false, $cm);
 
-    $itemid = (int) array_shift($args);
-    $record = $DB->get_record(
-        'assign_submission',
-        ['id' => $itemid],
-        'userid, assignment, groupid',
-        MUST_EXIST
+    // Access rules and the inline-versus-download decision live in file_access so
+    // that they are unit tested; send_stored_file() ends the request.
+    $servable = \assignsubmission_recording\local\file_access::get_servable_file(
+        $context,
+        $course,
+        $cm,
+        $filearea,
+        $args,
+        (bool) $forcedownload
     );
-
-    require_once($CFG->dirroot . '/mod/assign/locallib.php');
-    $assign = new assign($context, $cm, $course);
-
-    if ($assign->get_instance()->id != $record->assignment) {
+    if (!$servable) {
         return false;
     }
 
-    if (
-        $assign->get_instance()->teamsubmission
-        && !$assign->can_view_group_submission($record->groupid)
-    ) {
-        return false;
-    }
-
-    if (
-        !$assign->get_instance()->teamsubmission
-        && !$assign->can_view_submission($record->userid)
-    ) {
-        return false;
-    }
-
-    $relativepath = implode('/', $args);
-    $fullpath = "/{$context->id}/assignsubmission_recording/$filearea/$itemid/$relativepath";
-
-    $fs = get_file_storage();
-    if (!($file = $fs->get_file_by_hash(sha1($fullpath))) || $file->is_directory()) {
-        return false;
-    }
-
-    // Recordings play inline as <audio>/<video>, but only when the stored file is
-    // genuinely audio/video. Anything else (e.g. a non-media file that slipped past
-    // upload.php's content check by some other route) is forced to download instead
-    // of being rendered inline, matching core assignsubmission_file's behaviour.
-    $ismedia = (bool) preg_match('#^(audio|video)/#', $file->get_mimetype());
-    send_stored_file($file, 0, 0, !$ismedia, $options);
+    send_stored_file($servable['file'], 0, 0, $servable['forcedownload'], $options);
 }

@@ -1,7 +1,7 @@
 # Recording submission plugin for Moodle assignments
 
 **Component:** `assignsubmission_recording`  
-**Requires:** Moodle 4.5+ (version 2024100700)  
+**Requires:** Moodle 5.0+ (version 2025041400)  
 **Maturity:** Alpha
 
 Replaces the text editor in assignment submissions with a browser-based audio/video recorder. Students record directly in their browser — no third-party service or app required.
@@ -67,7 +67,7 @@ When creating or editing an assignment, under **Submission types**:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Allowed recording type | Audio or video | Restrict students to audio-only, video-only, or either |
-| Maximum recording length | 2 minutes | Recording stops automatically at this length; 0 = no limit |
+| Maximum recording length | 2 minutes | Recording stops automatically at this length, and the server rejects a recording file larger than this length allows at the site bitrates; 0 = no limit |
 
 ## How it works
 

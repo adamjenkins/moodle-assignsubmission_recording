@@ -52,6 +52,17 @@ class assign_submission_recording extends assign_submission_plugin {
     const DEFAULT_VIDEO_BITRATE = 2500000;
 
     /**
+     * @var int Headroom multiplier over the nominal size of a full-length recording.
+     *
+     * Browsers treat the requested bitrate as a target, not a cap, so the size
+     * ceiling derived from the maximum recording length allows this much overshoot.
+     */
+    const SIZE_HEADROOM_FACTOR = 2;
+
+    /** @var int Fixed allowance in bytes for container headers and metadata. */
+    const SIZE_OVERHEAD_BYTES = 262144;
+
+    /**
      * Return the plugin name.
      *
      * @return string
@@ -213,10 +224,38 @@ class assign_submission_recording extends assign_submission_plugin {
      * @return bool
      */
     public function save(stdClass $submission, stdClass $data) {
-        global $DB;
+        global $DB, $USER;
 
         $draftitemid = (int) ($data->assignsubmission_recording_itemid ?? 0);
         $text = $data->assignsubmission_recording_text ?? '';
+
+        // The hidden text field and the draft area are both client-controlled, so the
+        // assignment's recording rules are re-checked here rather than trusted from the
+        // recorder or upload.php (a file can also reach the draft area through core's
+        // repository upload).
+        if (!$this->embed_matches_mode((string) $text)) {
+            $this->set_error(get_string('recordingnotallowed', 'assignsubmission_recording'));
+            return false;
+        }
+
+        $mode = $this->get_mode();
+        $maxbytes = $this->get_max_recording_bytes($mode === self::MODE_AUDIO ? self::MODE_AUDIO : self::MODE_VIDEO);
+        if ($maxbytes > 0 && $draftitemid > 0) {
+            $draftfiles = get_file_storage()->get_area_files(
+                context_user::instance($USER->id)->id,
+                'user',
+                'draft',
+                $draftitemid,
+                'id',
+                false
+            );
+            foreach ($draftfiles as $draftfile) {
+                if ($draftfile->get_filesize() > $maxbytes) {
+                    $this->set_error(get_string('recordingtoolong', 'assignsubmission_recording'));
+                    return false;
+                }
+            }
+        }
 
         // Move files from draft area to submission area and rewrite embed URLs to @@PLUGINFILE@@.
         $text = file_save_draft_area_files(
@@ -423,7 +462,7 @@ class assign_submission_recording extends assign_submission_plugin {
      *
      * @return string one of the MODE_* constants
      */
-    private function get_mode(): string {
+    public function get_mode(): string {
         $mode = $this->get_config('mode');
 
         if (!$mode || !in_array($mode, [self::MODE_AUDIO, self::MODE_VIDEO, self::MODE_BOTH], true)) {
@@ -438,7 +477,7 @@ class assign_submission_recording extends assign_submission_plugin {
      *
      * @return int seconds, or 0 for no limit
      */
-    private function get_max_duration(): int {
+    public function get_max_duration(): int {
         $value = $this->get_config('maxduration');
 
         if ($value === false || $value === null) {
@@ -446,6 +485,49 @@ class assign_submission_recording extends assign_submission_plugin {
         }
 
         return max(0, (int) $value);
+    }
+
+    /**
+     * Return the largest recording, in bytes, that fits this assignment's maximum length.
+     *
+     * The ceiling is the nominal size of a full-length recording at the site's
+     * configured bitrates, times SIZE_HEADROOM_FACTOR, plus SIZE_OVERHEAD_BYTES.
+     * It is how the server enforces the maximum recording length, since the
+     * duration itself is not reliably recorded in the container (MediaRecorder
+     * WebM files usually carry no duration).
+     *
+     * @param string $mediatype 'audio' or 'video'
+     * @return int bytes, or 0 when the assignment has no length limit
+     */
+    public function get_max_recording_bytes(string $mediatype): int {
+        $maxduration = $this->get_max_duration();
+        if ($maxduration <= 0) {
+            return 0;
+        }
+
+        $bitrate = self::get_audio_bitrate();
+        if ($mediatype === self::MODE_VIDEO) {
+            $bitrate += self::get_video_bitrate();
+        }
+
+        return (int) ceil($maxduration * $bitrate / 8 * self::SIZE_HEADROOM_FACTOR) + self::SIZE_OVERHEAD_BYTES;
+    }
+
+    /**
+     * Whether recording embed HTML only uses media elements the assignment's mode allows.
+     *
+     * @param string $text the embed HTML from the submission form
+     * @return bool
+     */
+    public function embed_matches_mode(string $text): bool {
+        $mode = $this->get_mode();
+        if ($mode === self::MODE_AUDIO) {
+            return !preg_match('/<\s*video\b/i', $text);
+        }
+        if ($mode === self::MODE_VIDEO) {
+            return !preg_match('/<\s*audio\b/i', $text);
+        }
+        return true;
     }
 
     /**

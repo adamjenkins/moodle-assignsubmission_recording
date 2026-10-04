@@ -2,6 +2,22 @@
 
 All notable changes to the Recording submission plugin (`assignsubmission_recording`) are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- The per-assignment maximum recording length was enforced only by the browser recorder's auto-stop, so a direct request to `upload.php` could store a recording of any length. The server now rejects an upload larger than the maximum length allows at the site's configured bitrates (with headroom for encoder overshoot), and `save()` re-checks the files in the draft area, which can also be filled through core's repository upload.
+- The audio-only / video-only setting was checked only against the client-reported media type. `save()` now rejects a `<video>` embed in an audio-only assignment and an `<audio>` embed in a video-only one, and `upload.php` rejects media types other than `audio` or `video`.
+
+### Changed
+
+- `$plugin->requires` raised from Moodle 4.5 (2024100700) to Moodle 5.0 (2025041400), the lowest branch in `$plugin->supported`.
+- The upload rules and the file-serving access rules moved into `\assignsubmission_recording\local\recording_upload` and `\assignsubmission_recording\local\file_access` so they can be tested. A request that itself asks for a download (`?forcedownload=1`) is now honoured.
+
+### Added
+
+- PHPUnit tests covering the upload endpoint's rules (capability, content-type allowlist, size and length limits, recording mode), file serving (access per user and assignment, forced download for non-media files), saving and purified rendering, and the privacy provider (export and all three delete paths).
+
 ## [0.1.3] - 2026-10-03
 
 ### Changed
