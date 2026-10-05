@@ -15,9 +15,9 @@ labels:
   #   fully-free | freemium | paid-service | external-account
   #   donation-supported | commercial-support-available
   - fully-free
-# screenshots:
-#   - path: .camp/screenshots/overview.png
-#     caption: Main view
+screenshots:
+  - path: .camp/screenshots/01-submission-recorder.png
+    caption: 'The in-browser recorder on the student''s Add submission page: record audio or video, up to the set maximum length'
 # links:
 #   docs: https://…
 #   issues: https://…
